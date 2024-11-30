@@ -15,42 +15,47 @@ import { toFormattedJSON } from '../utils.mjs';
  * This is used to decode a complete .src.md file.
  */
 export function decode(contents: string): DecodeResult {
-  // First, decode the markdown text into tokens.
-  const tokens = marked.lexer(contents);
+  try {
+    // First, decode the markdown text into tokens.
+    const tokens = marked.lexer(contents);
 
-  // Second, pluck out srcbook metadata (ie <!-- srcbook:{<json>} -->):
-  const { metadata, tokens: filteredTokens } = getSrcbookMetadata(tokens);
+    // Second, pluck out srcbook metadata (ie <!-- srcbook:{<json>} -->):
+    const { metadata, tokens: filteredTokens } = getSrcbookMetadata(tokens);
 
-  // Third, group tokens by their function:
-  //
-  //     1. title
-  //     2. markdown
-  //     3. filename
-  //     4. code
-  //
-  const groups = groupTokens(filteredTokens);
+    // Third, group tokens by their function:
+    //
+    //     1. title
+    //     2. markdown
+    //     3. filename
+    //     4. code
+    //
+    const groups = groupTokens(filteredTokens);
 
-  // Fourth, validate the token groups and return a list of errors.
-  // Example errors might be:
-  //
-  //     1. The document contains no title
-  //     2. There is a filename (h6) with no corresponding code block
-  //     3. There is more than one package.json defined
-  //     4. etc.
-  //
-  const errors = validateTokenGroups(groups);
+    // Fourth, validate the token groups and return a list of errors.
+    // Example errors might be:
+    //
+    //     1. The document contains no title
+    //     2. There is a filename (h6) with no corresponding code block
+    //     3. There is more than one package.json defined
+    //     4. etc.
+    //
+    const errors = validateTokenGroups(groups);
 
-  // Finally, return either the set of errors or the tokens converted to cells if no errors were found.
-  return errors.length > 0
-    ? { error: true, errors: errors }
-    : {
-        error: false,
-        srcbook: {
-          language: metadata.language,
-          cells: convertToCells(groups),
-          'tsconfig.json': metadata['tsconfig.json'],
-        },
-      };
+    // Finally, return either the set of errors or the tokens converted to cells if no errors were found.
+    return errors.length > 0
+      ? { error: true, errors: errors }
+      : {
+          error: false,
+          srcbook: {
+            language: metadata.language,
+            cells: convertToCells(groups),
+            'tsconfig.json': metadata['tsconfig.json'],
+          },
+        };
+  } catch (error) {
+    console.error('Error decoding srcmd:', error);
+    return { error: true, errors: [error.message] };
+  }
 }
 
 /**
@@ -61,12 +66,17 @@ export function decode(contents: string): DecodeResult {
  * to ignore some aspects of it, like parsing the srcbook metadata comment.
  */
 export function decodeCells(contents: string): DecodeCellsResult {
-  const tokens = marked.lexer(contents);
-  const groups = groupTokens(tokens);
-  const errors = validateTokenGroupsPartial(groups);
-  return errors.length > 0
-    ? { error: true, errors }
-    : { error: false, srcbook: { cells: convertToCells(groups) } };
+  try {
+    const tokens = marked.lexer(contents);
+    const groups = groupTokens(tokens);
+    const errors = validateTokenGroupsPartial(groups);
+    return errors.length > 0
+      ? { error: true, errors }
+      : { error: false, srcbook: { cells: convertToCells(groups) } };
+  } catch (error) {
+    console.error('Error decoding srcmd cells:', error);
+    return { error: true, errors: [error.message] };
+  }
 }
 
 const SRCBOOK_METADATA_RE = /^<!--\s*srcbook:(.+)\s*-->$/;

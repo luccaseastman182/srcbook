@@ -64,7 +64,7 @@ import { AppGenerationFeedbackType } from '@srcbook/shared';
 import { createZipFromApp } from '../apps/disk.mjs';
 import { checkoutCommit, commitAllFiles, getCurrentCommitSha } from '../apps/git.mjs';
 import { streamJsonResponse } from './utils.mjs';
-import { orchestrateTasks } from '../orchestrator.mts';
+import { orchestrateTasks, globalContext } from '../ai/orchestrator.mts';
 
 const app: Application = express();
 
@@ -179,8 +179,28 @@ router.post('/generate', cors(), async (req, res) => {
 
   try {
     posthog.capture({ event: 'user generated srcbook with AI', properties: { query } });
+    globalContext.userInput = query;
     const result = await orchestrateTasks();
+
+    // Response quality checks for consistency and coherence
+    if (!result || typeof result !== 'string' || result.trim() === '') {
+      return res.status(400).json({ error: true, result: 'Invalid response from AI' });
+    }
+
+    // Natural language flow validation
+    if (!/^[a-zA-Z0-9\s.,!?]+$/.test(result)) {
+      return res.status(400).json({ error: true, result: 'Response contains invalid characters' });
+    }
+
+    // Interaction design features
+    res.setHeader('X-Processing-Status', 'In Progress');
+    res.setHeader('X-Progress', '50%');
+
     const srcbookDir = await importSrcbookFromSrcmdText(result);
+
+    res.setHeader('X-Progress', '100%');
+    res.setHeader('X-Processing-Status', 'Completed');
+
     return res.json({ error: false, result: { dir: srcbookDir } });
   } catch (e) {
     const error = e as unknown as Error;

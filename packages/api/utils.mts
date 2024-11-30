@@ -13,3 +13,7 @@ export function take<T extends object, K extends keyof T>(obj: T, ...keys: Array
 export function toFormattedJSON(o: any) {
   return JSON.stringify(o, null, 2);
 }
+
+export function logError(functionName: string, error: Error) {
+  console.error(`Error in ${functionName}:`, error);
+}

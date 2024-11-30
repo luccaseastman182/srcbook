@@ -70,6 +70,7 @@ export async function decodeDir(dir: string): Promise<DecodeResult> {
     }
   } catch (e) {
     const error = e as unknown as Error;
+    console.error('Error decoding directory:', error);
     return { error: true, errors: [error.message] };
   }
 }

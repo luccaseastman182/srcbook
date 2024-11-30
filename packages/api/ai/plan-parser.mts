@@ -154,9 +154,10 @@ export async function parsePlan(
       }
     }
 
+    console.log('Parsed plan details:', plan);
     return plan;
   } catch (error) {
-    console.error('Error parsing XML:', error);
+    console.error('Error parsing XML for the plan:', error);
     throw new Error('Failed to parse XML response');
   }
 }

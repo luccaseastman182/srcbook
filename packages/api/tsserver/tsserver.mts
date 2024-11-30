@@ -86,13 +86,21 @@ export class TsServer extends EventEmitter {
   }
 
   private send(request: tsserver.protocol.Request) {
-    this.process.stdin?.write(JSON.stringify(request) + '\n');
+    try {
+      this.process.stdin?.write(JSON.stringify(request) + '\n');
+    } catch (error) {
+      console.error('Error sending request to tsserver:', error);
+    }
   }
 
   private sendWithResponsePromise<T>(request: tsserver.protocol.Request) {
-    return new Promise<T>((resolve) => {
+    return new Promise<T>((resolve, reject) => {
       this.resolvers[request.seq] = resolve;
-      this.send(request);
+      try {
+        this.send(request);
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 

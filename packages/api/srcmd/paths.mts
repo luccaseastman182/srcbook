@@ -1,3 +1,8 @@
 export function isSrcmdPath(path: string) {
-  return path.endsWith('.src.md');
+  try {
+    return path.endsWith('.src.md');
+  } catch (error) {
+    console.error('Error in isSrcmdPath:', error);
+    return false;
+  }
 }

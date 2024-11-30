@@ -22,3 +22,11 @@ export type DecodeResult = DecodeErrorResult | DecodeSuccessResult;
 
 // This represents the result of decoding a subset of content from a .src.md file.
 export type DecodeCellsResult = DecodeErrorResult | DecodeCellsSuccessResult;
+
+export function logTypeOperation(operation: string, details: any) {
+  console.log(`Type operation: ${operation}`, details);
+}
+
+export function handleTypeError(error: Error, operation: string) {
+  console.error(`Error during type operation: ${operation}`, error);
+}

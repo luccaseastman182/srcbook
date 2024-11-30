@@ -39,37 +39,42 @@ function findSessionByDirname(dirname: string) {
 }
 
 export async function createSession(srcbookDir: string) {
-  const existingSession = findSessionByDirname(srcbookDir);
+  try {
+    const existingSession = findSessionByDirname(srcbookDir);
 
-  if (existingSession) {
-    const updatedSession = { ...existingSession, openedAt: Date.now() };
-    sessions[existingSession.id] = updatedSession;
-    return updatedSession;
+    if (existingSession) {
+      const updatedSession = { ...existingSession, openedAt: Date.now() };
+      sessions[existingSession.id] = updatedSession;
+      return updatedSession;
+    }
+
+    const result = await decodeDir(srcbookDir);
+    if (result.error) {
+      console.error(result.errors);
+      throw new Error(`Cannot create session from invalid srcbook directory at ${srcbookDir}`);
+    }
+
+    const srcbook = result.srcbook;
+
+    const session: SessionType = {
+      id: Path.basename(srcbookDir),
+      dir: srcbookDir,
+      cells: srcbook.cells,
+      language: srcbook.language,
+      openedAt: Date.now(),
+    };
+
+    if (session.language === 'typescript') {
+      session['tsconfig.json'] = srcbook['tsconfig.json'];
+    }
+
+    sessions[session.id] = session;
+
+    return session;
+  } catch (error) {
+    console.error('Error creating session:', error);
+    throw error;
   }
-
-  const result = await decodeDir(srcbookDir);
-  if (result.error) {
-    console.error(result.errors);
-    throw new Error(`Cannot create session from invalid srcbook directory at ${srcbookDir}`);
-  }
-
-  const srcbook = result.srcbook;
-
-  const session: SessionType = {
-    id: Path.basename(srcbookDir),
-    dir: srcbookDir,
-    cells: srcbook.cells,
-    language: srcbook.language,
-    openedAt: Date.now(),
-  };
-
-  if (session.language === 'typescript') {
-    session['tsconfig.json'] = srcbook['tsconfig.json'];
-  }
-
-  sessions[session.id] = session;
-
-  return session;
 }
 
 export async function deleteSessionByDirname(dirName: string) {

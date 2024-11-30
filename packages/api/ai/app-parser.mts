@@ -9,6 +9,7 @@ export interface FileContent {
 export type Project = {
   id: string;
   items: (File | Command)[];
+  metadata?: Record<string, any>;
 };
 
 type File = {
@@ -27,6 +28,7 @@ type ParsedResult = {
     '@_id': string;
     file?: { '@_filename': string; '#text': string }[] | { '@_filename': string; '#text': string };
     command?: string[] | string;
+    metadata?: Record<string, any>;
   };
 };
 
@@ -46,6 +48,7 @@ export function parseProjectXML(response: string): Project {
     const project: Project = {
       id: result.project['@_id'],
       items: [],
+      metadata: result.project.metadata || {},
     };
 
     const files = Array.isArray(result.project.file)
@@ -76,6 +79,7 @@ export function parseProjectXML(response: string): Project {
       }
     }
 
+    console.log('Parsed project details:', project);
     return project;
   } catch (error) {
     console.error('Error parsing XML for the app:', error);
@@ -83,7 +87,7 @@ export function parseProjectXML(response: string): Project {
   }
 }
 
-export function buildProjectXml(files: FileContent[], projectId: string): string {
+export function buildProjectXml(files: FileContent[], projectId: string, metadata: Record<string, any> = {}): string {
   const fileXmls = files
     .map(
       (file) => `
@@ -95,9 +99,14 @@ ${file.content}
     )
     .join('\n');
 
+  const metadataXml = Object.entries(metadata)
+    .map(([key, value]) => `<${key}>${value}</${key}>`)
+    .join('\n');
+
   return `
 <project id="${projectId}">
 ${fileXmls}
+${metadataXml}
 </project>
   `.trim();
 }

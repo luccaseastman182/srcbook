@@ -106,3 +106,11 @@ function encodeFileExternal(options: { filename: string; filepath: string }) {
   const { filename, filepath } = options;
   return `###### ${filename}\n\n[${filename}](${filepath})`;
 }
+
+function logEncodingOperation(operation: string, details: any) {
+  console.log(`Encoding operation: ${operation}`, details);
+}
+
+function handleEncodingError(error: Error, operation: string) {
+  console.error(`Error during encoding operation: ${operation}`, error);
+}

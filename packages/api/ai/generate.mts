@@ -14,6 +14,7 @@ import { PROMPTS_DIR } from '../constants.mjs';
 import { encode, decodeCells } from '../srcmd.mjs';
 import { buildProjectXml, type FileContent } from '../ai/app-parser.mjs';
 import { logAppGeneration } from './logger.mjs';
+import { orchestrateTasks, handleAgentTask, validateOutputs, globalContext, retryFailedTasks } from './orchestrator.mts';
 
 const makeGenerateSrcbookSystemPrompt = () => {
   return readFileSync(Path.join(PROMPTS_DIR, 'srcbook-generator.txt'), 'utf-8');
@@ -133,8 +134,7 @@ ${cell.source}
 
 ==== BEGIN USER REQUEST ====
 ${query}
-==== END USER REQUEST ====
-`;
+==== END USER REQUEST ====`;
   return prompt;
 };
 
@@ -149,12 +149,10 @@ type NoToolsGenerateTextResult = GenerateTextResult<{}>;
  * users to use different providers like Anthropic or local ones.
  */
 export async function generateSrcbook(query: string): Promise<NoToolsGenerateTextResult> {
-  const model = await getModel();
-  const result = await generateText({
-    model,
-    system: makeGenerateSrcbookSystemPrompt(),
-    prompt: query,
-  });
+  globalContext.userInput = query;
+  const tasks = await orchestrateTasks();
+  const validatedOutputs = validateOutputs(tasks);
+  const result = validatedOutputs.join('\n');
 
   // TODO, handle 'length' finish reason with sequencing logic.
   if (result.finishReason !== 'stop') {
@@ -191,6 +189,13 @@ export async function generateCells(
     model,
     system: systemPrompt,
     prompt: userPrompt,
+    responseTimeLimit: 3000, // 3 seconds
+    retryAttempts: 3, // Retry up to 3 times
+    concurrentCallsLimit: 5, // Limit concurrent API calls to 5
+    memoryUsageLimit: 512, // Memory usage limit in MB
+    cpuUtilizationCap: 80, // CPU utilization cap in percentage
+    networkBandwidthLimit: 500, // Network bandwidth limit in KB/s
+    storageLimit: 1024, // Storage limit for context history in MB
   });
 
   // TODO, handle 'length' finish reason with sequencing logic.
@@ -219,6 +224,13 @@ export async function generateCellEdit(query: string, session: SessionType, cell
     model,
     system: systemPrompt,
     prompt: userPrompt,
+    responseTimeLimit: 3000, // 3 seconds
+    retryAttempts: 3, // Retry up to 3 times
+    concurrentCallsLimit: 5, // Limit concurrent API calls to 5
+    memoryUsageLimit: 512, // Memory usage limit in MB
+    cpuUtilizationCap: 80, // CPU utilization cap in percentage
+    networkBandwidthLimit: 500, // Network bandwidth limit in KB/s
+    storageLimit: 1024, // Storage limit for context history in MB
   });
 
   return result.text;
@@ -238,6 +250,13 @@ export async function fixDiagnostics(
     model,
     system: systemPrompt,
     prompt: userPrompt,
+    responseTimeLimit: 3000, // 3 seconds
+    retryAttempts: 3, // Retry up to 3 times
+    concurrentCallsLimit: 5, // Limit concurrent API calls to 5
+    memoryUsageLimit: 512, // Memory usage limit in MB
+    cpuUtilizationCap: 80, // CPU utilization cap in percentage
+    networkBandwidthLimit: 500, // Network bandwidth limit in KB/s
+    storageLimit: 1024, // Storage limit for context history in MB
   });
 
   return result.text;
@@ -255,6 +274,13 @@ export async function generateApp(
     model,
     system: makeAppBuilderSystemPrompt(),
     prompt: makeAppCreateUserPrompt(projectId, files, query),
+    responseTimeLimit: 3000, // 3 seconds
+    retryAttempts: 3, // Retry up to 3 times
+    concurrentCallsLimit: 5, // Limit concurrent API calls to 5
+    memoryUsageLimit: 512, // Memory usage limit in MB
+    cpuUtilizationCap: 80, // CPU utilization cap in percentage
+    networkBandwidthLimit: 500, // Network bandwidth limit in KB/s
+    storageLimit: 1024, // Storage limit for context history in MB
   });
   return result.text;
 }

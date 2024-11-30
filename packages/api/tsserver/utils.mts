@@ -32,3 +32,11 @@ function isDiagnosticWithLinePosition(
 ): diagnostic is tsserver.protocol.DiagnosticWithLinePosition {
   return 'startLocation' in diagnostic;
 }
+
+export function logDiagnostic(diagnostic: TsServerDiagnosticType) {
+  console.log(`Diagnostic - Code: ${diagnostic.code}, Category: ${diagnostic.category}, Message: ${diagnostic.text}`);
+}
+
+export function handleDiagnosticError(diagnostic: TsServerDiagnosticType, error: Error) {
+  console.error(`Error processing diagnostic - Code: ${diagnostic.code}, Category: ${diagnostic.category}, Message: ${diagnostic.text}, Error: ${error.message}`);
+}
