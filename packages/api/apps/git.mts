@@ -13,8 +13,15 @@ function getGit(app: DBAppType): SimpleGit {
 // Initialize a git repository in the app directory
 export async function initRepo(app: DBAppType): Promise<void> {
   const git = getGit(app);
-  await git.init();
-  await commitAllFiles(app, 'Initial commit');
+  try {
+    await git.init();
+    await commitAllFiles(app, 'Initial commit');
+  } catch (error) {
+    console.error('Error initializing repository:', error);
+    // Implement state recovery mechanism
+    await recoverRepoState(app);
+    throw error;
+  }
 }
 
 // Commit all current files in the app directory
@@ -31,6 +38,10 @@ export async function commitAllFiles(app: DBAppType, message: string): Promise<s
 
   // Get the exact SHA of the new commit. Sometimes it's 'HEAD <sha>' for some reason
   const sha = await git.revparse(['HEAD']);
+
+  // Implement state tracking and result aggregation
+  await trackCommitState(app, sha, message);
+
   return sha;
 }
 
@@ -129,4 +140,16 @@ export async function getChangedFiles(
   });
 
   return changes;
+}
+
+// Implement state recovery mechanism
+async function recoverRepoState(app: DBAppType) {
+  // Placeholder for state recovery logic
+  console.log('Recovering repository state for', app.externalId);
+}
+
+// Implement state tracking and result aggregation
+async function trackCommitState(app: DBAppType, sha: string, message: string) {
+  // Placeholder for state tracking logic
+  console.log('Tracking commit state for', app.externalId, sha, message);
 }

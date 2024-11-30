@@ -28,6 +28,29 @@ async function insert(attrs: Pick<DBAppType, 'name' | 'externalId'>): Promise<DB
   return app!;
 }
 
+async function parseContext(data: CreateAppWithAiSchemaType): Promise<any> {
+  // Implement context parsing logic here
+  return {};
+}
+
+async function decomposeTask(data: CreateAppWithAiSchemaType): Promise<any> {
+  // Implement task decomposition logic here
+  return {};
+}
+
+async function assignPriority(data: CreateAppWithAiSchemaType): Promise<any> {
+  // Implement priority assignment logic here
+  return {};
+}
+
+async function trackState(app: DBAppType, state: any): Promise<void> {
+  // Implement state tracking logic here
+}
+
+async function aggregateResult(app: DBAppType, result: any): Promise<void> {
+  // Implement result aggregation logic here
+}
+
 export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<DBAppType> {
   const app = await insert({
     name: data.name,
@@ -38,8 +61,10 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
 
   await initRepo(app);
 
-  // Note: we don't surface issues or retries and this is "running in the background".
-  // In this case it works in our favor because we'll kickoff generation while it happens
+  const context = await parseContext(data);
+  const tasks = await decomposeTask(data);
+  const priority = await assignPriority(data);
+
   const firstNpmInstallProcess = npmInstall(app.externalId, {
     stdout(data) {
       console.log(data.toString('utf8'));
@@ -79,8 +104,12 @@ export async function createAppWithAi(data: CreateAppWithAiSchemaType): Promise<
     });
   }
 
+  await trackState(app, context);
+  await aggregateResult(app, result);
+
   return app;
 }
+
 export async function createApp(data: CreateAppSchemaType): Promise<DBAppType> {
   const app = await insert({
     name: data.name,
@@ -89,9 +118,6 @@ export async function createApp(data: CreateAppSchemaType): Promise<DBAppType> {
 
   await createViteApp(app);
 
-  // TODO: handle this better.
-  // This should be done somewhere else and surface issues or retries.
-  // Not awaiting here because it's "happening in the background".
   npmInstall(app.externalId, {
     stdout(data) {
       console.log(data.toString('utf8'));

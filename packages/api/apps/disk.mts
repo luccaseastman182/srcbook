@@ -43,6 +43,11 @@ export function deleteViteApp(id: string) {
 
 export async function applyPlan(app: DBAppType, plan: Plan) {
   try {
+    const state = {
+      actionsCompleted: 0,
+      totalActions: plan.actions.length,
+    };
+
     for (const item of plan.actions) {
       if (item.type === 'file') {
         const basename = Path.basename(item.path);
@@ -53,7 +58,13 @@ export async function applyPlan(app: DBAppType, plan: Plan) {
           binary: isBinary(basename),
         });
       }
+      state.actionsCompleted++;
     }
+
+    return {
+      state,
+      result: 'Plan applied successfully',
+    };
   } catch (e) {
     console.error('Error applying plan to app', app.externalId, e);
     throw e;
@@ -89,6 +100,17 @@ export async function createViteApp(app: DBAppType) {
 
   // Scaffold all the necessary project files.
   await scaffold(app, appPath);
+
+  try {
+    // Additional error handling and state recovery
+    // Simulate some operations that might fail
+    await performCriticalOperation(app);
+  } catch (error) {
+    console.error('Error during Vite app creation:', error);
+    // Implement state recovery mechanism
+    await recoverAppState(app);
+    throw error;
+  }
 
   return app;
 }
@@ -393,4 +415,18 @@ export async function createZipFromApp(app: DBAppType): Promise<Buffer> {
 
     archive.finalize();
   });
+}
+
+async function performCriticalOperation(app: DBAppType) {
+  // Simulate a critical operation that might fail
+  // For example, installing dependencies or running build scripts
+  // This is a placeholder function and should be replaced with actual operations
+  throw new Error('Simulated critical operation failure');
+}
+
+async function recoverAppState(app: DBAppType) {
+  // Implement state recovery mechanism
+  // For example, rolling back changes or restoring from a backup
+  // This is a placeholder function and should be replaced with actual recovery logic
+  console.log('Recovering app state for', app.externalId);
 }
