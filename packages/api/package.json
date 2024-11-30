@@ -37,7 +37,8 @@
     "posthog-node": "^4.2.0",
     "simple-git": "^3.27.0",
     "ws": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "glhf.chat": "^1.0.0"
   },
   "devDependencies": {
     "@types/archiver": "^6.0.2",

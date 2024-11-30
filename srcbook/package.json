@@ -31,7 +31,8 @@
     "open": "^10.1.0",
     "posthog-node": "^4.2.0",
     "ws": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "glhf.chat": "^1.0.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

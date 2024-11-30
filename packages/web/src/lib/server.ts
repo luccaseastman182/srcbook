@@ -423,6 +423,17 @@ export async function aiHealthcheck() {
   return response.json();
 }
 
+export async function glhfHealthcheck() {
+  const response = await fetch(API_BASE_URL + '/glhf/healthcheck', {
+    method: 'GET',
+    headers: { 'content-type': 'application/json' },
+  });
+  if (!response.ok) {
+    console.error(response);
+  }
+  return response.json();
+}
+
 export async function subscribeToMailingList(email: string) {
   const response = await fetch(API_BASE_URL + '/subscribe', {
     method: 'POST',

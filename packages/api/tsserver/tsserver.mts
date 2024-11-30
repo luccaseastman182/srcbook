@@ -51,6 +51,14 @@ export class TsServer extends EventEmitter {
         }
       }
     });
+
+    this.process.on('error', (error) => {
+      console.error('TsServer process error:', error);
+    });
+
+    this.process.on('exit', (code, signal) => {
+      console.log(`TsServer process exited with code ${code} and signal ${signal}`);
+    });
   }
 
   private get seq() {

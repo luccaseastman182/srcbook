@@ -10,7 +10,7 @@ import { getDefaultModel, type AiProviderType } from '@srcbook/shared';
  */
 export async function getModel(): Promise<LanguageModel> {
   const config = await getConfig();
-  const { aiModel, aiProvider, aiBaseUrl } = config;
+  const { aiModel, aiProvider, aiBaseUrl, glhfKey } = config;
   const model = aiModel || getDefaultModel(aiProvider as AiProviderType);
   switch (aiProvider as AiProviderType) {
     case 'openai':
@@ -51,5 +51,16 @@ export async function getModel(): Promise<LanguageModel> {
         baseURL: aiBaseUrl,
       });
       return openaiCompatible(model);
+
+    case 'glhf':
+      if (!glhfKey) {
+        throw new Error('glhf.chat API key is not set');
+      }
+      const glhf = createOpenAI({
+        compatibility: 'compatible',
+        baseURL: 'https://glhf.chat/api/openai/v1',
+        apiKey: glhfKey,
+      });
+      return glhf(model);
   }
 }
