@@ -43,6 +43,13 @@ const markdownRenderer = {
       </pre>
     );
   },
+  link(href: string, title: string, text: string) {
+    return (
+      <a href={href} title={title} target="_blank" rel="noopener noreferrer">
+        {text}
+      </a>
+    );
+  },
 };
 
 function getValidationError(text: string) {

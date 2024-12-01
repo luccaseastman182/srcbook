@@ -27,6 +27,8 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
   const [url, setUrl] = useState<string | null>(null);
   const [status, setStatus] = useState<PreviewStatusType>('connecting');
   const [exitCode, setExitCode] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [backgroundProcessing, setBackgroundProcessing] = useState<boolean>(false);
 
   const { npmInstall, nodeModulesExists } = usePackageJson();
   const { addLog } = useLogs();
@@ -39,13 +41,18 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
       switch (payload.status) {
         case 'booting':
           addLog('info', 'srcbook', 'Dev server is booting...');
+          setLoading(true);
           break;
         case 'running':
           addLog('info', 'srcbook', `Dev server is running at ${payload.url}`);
+          setLoading(false);
+          setBackgroundProcessing(false);
           break;
         case 'stopped':
           addLog('info', 'srcbook', `Dev server exited with status ${payload.code}`);
           setExitCode(payload.code);
+          setLoading(false);
+          setBackgroundProcessing(false);
           break;
       }
     }
@@ -59,10 +66,14 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
     if (nodeModulesExists === false) {
       await npmInstall();
     }
+    setLoading(true);
+    setBackgroundProcessing(true);
     channel.push('preview:start', {});
   }
 
   const stop = useCallback(() => {
+    setLoading(false);
+    setBackgroundProcessing(false);
     channel.push('preview:stop', {});
   }, [channel]);
 
@@ -82,6 +93,8 @@ export function PreviewProvider({ channel, children }: ProviderPropsType) {
   return (
     <PreviewContext.Provider value={{ url, status, stop, start, exitCode }}>
       {children}
+      {loading && <div>Loading...</div>}
+      {backgroundProcessing && <div>Background processing...</div>}
     </PreviewContext.Provider>
   );
 }

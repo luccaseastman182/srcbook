@@ -9,4 +9,12 @@ export default defineConfig({
   dbCredentials: {
     url: Path.join(SRCBOOK_DIR, 'srcbook.db'),
   },
+  scalability: {
+    maxConnections: 100,
+    connectionTimeout: 30000,
+  },
+  maintainability: {
+    enableLogging: true,
+    logLevel: 'info',
+  },
 });

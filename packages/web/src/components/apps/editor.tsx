@@ -9,6 +9,7 @@ import { extname } from './lib/path';
 import { EditorView } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { unifiedMergeView } from '@codemirror/merge';
+import { useEffect, useRef } from 'react';
 
 export function CodeEditor({
   path,
@@ -20,9 +21,16 @@ export function CodeEditor({
   onChange: (updatedSource: string) => void;
 }) {
   const { codeTheme } = useTheme();
+  const editorRef = useRef(null);
 
   const languageExtension = getCodeMirrorLanguageExtension(path);
   const extensions = languageExtension ? [languageExtension] : [];
+
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.editor.focus();
+    }
+  }, [path]);
 
   return (
     <CodeMirror
@@ -31,6 +39,8 @@ export function CodeEditor({
       theme={codeTheme}
       extensions={extensions}
       onChange={onChange}
+      ref={editorRef}
+      aria-label="Code editor"
     />
   );
 }
@@ -50,6 +60,7 @@ export function DiffEditor({
   };
 }) {
   const { codeTheme } = useTheme();
+  const editorRef = useRef(null);
 
   const extensions = [
     EditorView.editable.of(false),
@@ -68,7 +79,21 @@ export function DiffEditor({
     extensions.unshift(languageExtension);
   }
 
-  return <CodeMirror value={modified} theme={codeTheme} extensions={extensions} />;
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.editor.focus();
+    }
+  }, [path]);
+
+  return (
+    <CodeMirror
+      value={modified}
+      theme={codeTheme}
+      extensions={extensions}
+      ref={editorRef}
+      aria-label="Diff editor"
+    />
+  );
 }
 
 function getCodeMirrorLanguageExtension(path: string) {

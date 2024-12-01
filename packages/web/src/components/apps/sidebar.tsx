@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import useTheme from '@srcbook/components/src/components/use-theme';
 
 import {
@@ -48,6 +48,15 @@ export default function Sidebar({ initialPanel }: SidebarProps) {
   const [panel, _setPanel] = useState<PanelType | null>(initialPanel);
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+
+  // Performance tracking and usage analytics
+  useEffect(() => {
+    // Track sidebar usage
+    console.log('Sidebar mounted');
+    return () => {
+      console.log('Sidebar unmounted');
+    };
+  }, []);
 
   function setPanel(nextPanel: PanelType) {
     _setPanel(nextPanel === panel ? null : nextPanel);

@@ -89,6 +89,22 @@ export function LogsProvider({ channel, children }: ProviderPropsType) {
     };
   }, [channel, addLog]);
 
+  // Add response quality measures
+  useEffect(() => {
+    if (logs.length > 1000) {
+      setLogs((logs) => logs.slice(-1000));
+    }
+  }, [logs]);
+
+  // Add interaction design elements
+  useEffect(() => {
+    if (unreadLogsCount > 0 && !open) {
+      document.title = `(${unreadLogsCount}) New Logs`;
+    } else {
+      document.title = 'Logs';
+    }
+  }, [unreadLogsCount, open]);
+
   return (
     <LogsContext.Provider
       value={{

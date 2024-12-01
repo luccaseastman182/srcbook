@@ -36,8 +36,13 @@ export function AppProvider({ app: initialApp, children }: ProviderPropsType) {
   }, [app.id]);
 
   async function updateApp(attrs: { name: string }) {
-    const { data: updatedApp } = await doUpdateApp(app.id, attrs);
-    setApp(updatedApp);
+    try {
+      const { data: updatedApp } = await doUpdateApp(app.id, attrs);
+      setApp(updatedApp);
+    } catch (error) {
+      console.error('Failed to update app:', error);
+      // Implement state recovery mechanism here
+    }
   }
 
   return (
@@ -48,5 +53,9 @@ export function AppProvider({ app: initialApp, children }: ProviderPropsType) {
 }
 
 export function useApp(): AppContextValue {
-  return useContext(AppContext) as AppContextValue;
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
+  }
+  return context;
 }

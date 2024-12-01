@@ -20,6 +20,7 @@ process.on('SIGINT', async function () {
   server.close();
   process.exit();
 });
+
 if (import.meta.hot) {
   import.meta.hot.on('vite:beforeFullReload', () => {
     wss.close();
@@ -31,3 +32,20 @@ if (import.meta.hot) {
     server.close();
   });
 }
+
+// Add monitoring and error logging
+server.on('error', (err) => {
+  console.error('Server error:', err);
+});
+
+server.on('listening', () => {
+  console.log('Server is listening on port', port);
+});
+
+wss.on('error', (err) => {
+  console.error('WebSocket server error:', err);
+});
+
+wss.on('listening', () => {
+  console.log('WebSocket server is listening');
+});

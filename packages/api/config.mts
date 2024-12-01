@@ -50,7 +50,16 @@ export async function getConfig(): Promise<Config> {
 }
 
 export async function updateConfig(attrs: Partial<Config>) {
-  return db.update(configs).set(attrs).returning();
+  try {
+    const updatedConfig = await db.update(configs).set(attrs).returning();
+    if (updatedConfig.length === 0) {
+      throw new Error('No config updated');
+    }
+    return updatedConfig;
+  } catch (error) {
+    console.error('Error updating config:', error);
+    throw error;
+  }
 }
 
 export async function getHistory(appId: string): Promise<HistoryType> {
